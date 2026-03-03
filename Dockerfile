@@ -8,6 +8,7 @@ RUN apt-get update \
         build-essential \
         libffi-dev \
         libssl-dev \
+        libpq-dev \
         git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -17,10 +18,12 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 COPY . /opt/CTFd
 
-RUN pip install --no-cache-dir -r requirements.txt \
+# Install Postgres driver in the venv, then normal requirements + plugins
+RUN pip install --no-cache-dir psycopg2-binary \
+    && pip install --no-cache-dir -r requirements.txt \
     && for d in CTFd/plugins/*; do \
         if [ -f "$d/requirements.txt" ]; then \
-            pip install --no-cache-dir -r "$d/requirements.txt";\
+            pip install --no-cache-dir -r "$d/requirements.txt"; \
         fi; \
     done;
 
@@ -33,6 +36,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libffi8 \
         libssl3 \
+        libpq5 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
